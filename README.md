@@ -1,6 +1,14 @@
 
 # Video & Image Comparison Slider Applications
 
+# Only Patreon users are allowed to use please obtain zip file from : https://www.patreon.com/posts/video-comparison-133935178
+
+## Only for Patreon subscribers : https://www.patreon.com/posts/video-comparison-133935178
+
+<img width="3840" height="4599" alt="screencapture-file-E-Ultimate-Video-Processing-v1-Video-Comparison-Slider-Video-Comparison-Slider-Start-Slider-App-html-2025-07-12-03_35_19" src="https://github.com/user-attachments/assets/4706d16c-ad22-4a56-a383-d768ffbdca3f" />
+
+<img width="3840" height="5189" alt="screencapture-file-E-Ultimate-Video-Processing-v1-Video-Comparison-Slider-Video-Comparison-Slider-Image-Comparison-Slider-html-2025-07-12-04_30_24" src="https://github.com/user-attachments/assets/2ea0d4f4-ac31-4f9a-817a-23b0a75204ed" />
+
 This repository contains two powerful comparison tools for multimedia content:
 
 ## 1. Video Comparison Slider (`Start_Slider_App.html`)
