@@ -3,6 +3,8 @@
 
 ## Please get from and use : https://www.patreon.com/posts/133935178
 
+<img width="3840" height="5445" alt="screencapture-file-E-Ultimate-Video-Processing-v1-Video-Comparison-Slider-index-html-2025-07-12-03_05_51" src="https://github.com/user-attachments/assets/dc4ecbe9-d470-4d7a-b0bf-0b86b3888c88" />
+
 # Video Comparison Slider App
 
 A modern, responsive web application for comparing two videos side-by-side with an interactive slider interface.
