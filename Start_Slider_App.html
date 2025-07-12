@@ -1089,13 +1089,19 @@
                 }
 
                 // Set container height based on aspect ratio
-                if (containerRatio > targetRatio) {
-                    // Container is wider, set height based on width
-                    const height = containerRect.width / targetRatio;
-                    this.videoContainer.style.height = `${Math.min(height, window.innerHeight * 0.8)}px`;
+                if (this.isFullscreen) {
+                    // In fullscreen mode, use the full available height
+                    this.videoContainer.style.height = '100vh';
                 } else {
-                    // Container is taller, use current height
-                    this.videoContainer.style.height = '500px';
+                    // Normal mode - apply constraints
+                    if (containerRatio > targetRatio) {
+                        // Container is wider, set height based on width
+                        const height = containerRect.width / targetRatio;
+                        this.videoContainer.style.height = `${Math.min(height, window.innerHeight * 0.8)}px`;
+                    } else {
+                        // Container is taller, use current height
+                        this.videoContainer.style.height = '500px';
+                    }
                 }
             }
 
