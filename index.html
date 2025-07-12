@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Comparison Slider</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .video-input {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .video-input:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .video-input h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .file-input-label:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .compare-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .compare-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+        }
+
+        .compare-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loop-control {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .loop-checkbox {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #333;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .loop-checkbox:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .loop-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .video-preview {
+            margin-top: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .video-preview.active {
+            display: block;
+        }
+
+        .video-preview video {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .preview-info {
+            padding: 10px;
+            background: #f8f9fa;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .preview-info .filename {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .video-comparison {
+            position: relative;
+            background: #000;
+            margin: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            min-height: 400px;
+            display: none;
+        }
+
+        .video-comparison.active {
+            display: block;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+            overflow: hidden;
+            cursor: grab;
+            transform-origin: center center;
+            transition: transform 0.2s ease;
+        }
+
+        .video-container.zoomed {
+            cursor: move;
+        }
+
+        .video-container.dragging {
+            cursor: grabbing;
+        }
+
+        .video-container.no-transition {
+            transition: none;
+        }
+
+        .video-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .video-left {
+            z-index: 1;
+        }
+
+        .video-right {
+            z-index: 2;
+            clip-path: polygon(50% 0%, 100% 0%, 100% 100%, 50% 100%);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .slider-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 4px;
+            height: 100%;
+            background: #fff;
+            z-index: 10;
+            cursor: ew-resize;
+            transform: translateX(-50%);
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: ew-resize;
+        }
+
+        .slider-handle::before,
+        .slider-handle::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .slider-handle::before {
+            left: 10px;
+        }
+
+        .slider-handle::after {
+            right: 10px;
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 20px;
+            z-index: 15;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .control-btn {
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #667eea;
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        .video-labels {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 160px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 20;
+        }
+
+        .video-label {
+            padding: 8px 15px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+
+        .error-message {
+            background: #dc3545;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px;
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .fullscreen-mode {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            top: 20px;
+            right: 80px;
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+
+        .zoom-indicator {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .zoom-indicator.visible {
+            opacity: 1;
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 20px;
+            z-index: 15;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .control-btn {
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #667eea;
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            z-index: 20;
+        }
+
+        .fullscreen-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .video-labels {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 20;
+        }
+
+        .video-label {
+            padding: 8px 15px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+
+        .error-message {
+            background: #dc3545;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px;
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .fullscreen-mode {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                padding: 20px;
+            }
+            
+            .video-input {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Video Comparison Slider</h1>
+            <p>Compare two videos side by side with an interactive slider</p>
+        </div>
+
+        <div class="controls">
+            <div class="input-group">
+                <div class="video-input">
+                    <h3>📹 First Video</h3>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="video1File" class="file-input" accept="video/*">
+                        <label for="video1File" class="file-input-label">
+                            📁 Choose Video File
+                        </label>
+                    </div>
+                    <input type="url" id="video1Url" class="url-input" placeholder="Or enter video URL...">
+                    
+                    <div class="video-preview" id="preview1">
+                        <video id="previewVideo1" controls muted></video>
+                        <div class="preview-info">
+                            <div class="filename" id="filename1"></div>
+                            <div id="videoInfo1"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-input">
+                    <h3>📹 Second Video</h3>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="video2File" class="file-input" accept="video/*">
+                        <label for="video2File" class="file-input-label">
+                            📁 Choose Video File
+                        </label>
+                    </div>
+                    <input type="url" id="video2Url" class="url-input" placeholder="Or enter video URL...">
+                    
+                    <div class="video-preview" id="preview2">
+                        <video id="previewVideo2" controls muted></video>
+                        <div class="preview-info">
+                            <div class="filename" id="filename2"></div>
+                            <div id="videoInfo2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loop-control">
+                <label class="loop-checkbox">
+                    <input type="checkbox" id="loopCheckbox" checked>
+                    <span class="checkmark"></span>
+                    🔄 Loop videos permanently
+                </label>
+            </div>
+
+            <button id="compareBtn" class="compare-btn">
+                🔄 Compare Videos
+            </button>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="video-comparison" id="videoComparison">
+            <div class="video-container" id="videoContainer">
+                <div class="video-wrapper video-left">
+                    <video id="video1" preload="metadata"></video>
+                </div>
+                <div class="video-wrapper video-right">
+                    <video id="video2" preload="metadata"></video>
+                </div>
+
+                <div class="slider-container" id="sliderContainer">
+                    <div class="slider-handle" id="sliderHandle"></div>
+                </div>
+
+                <div class="video-labels">
+                    <div class="video-label">Video 1</div>
+                    <div class="video-label">Video 2</div>
+                </div>
+
+                <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle Fullscreen">
+                    ⛶
+                </button>
+
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="zoomInBtn" title="Zoom In">+</button>
+                    <button class="zoom-btn" id="zoomOutBtn" title="Zoom Out">-</button>
+                    <button class="zoom-btn" id="zoomResetBtn" title="Reset Zoom">⌂</button>
+                </div>
+                <div class="zoom-indicator" id="zoomIndicator">100%</div>
+
+                <div class="video-controls">
+                    <div class="control-buttons">
+                        <button class="control-btn" id="playPauseBtn">▶️</button>
+                        <button class="control-btn" id="rewindBtn">⏪</button>
+                        <button class="control-btn" id="forwardBtn">⏩</button>
+                        <button class="control-btn" id="muteBtn">🔊</button>
+                        <span class="control-btn" id="timeDisplay">00:00 / 00:00</span>
+                    </div>
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class VideoComparison {
+            constructor() {
+                this.init();
+                this.setupEventListeners();
+            }
+
+            init() {
+                this.video1 = document.getElementById('video1');
+                this.video2 = document.getElementById('video2');
+                this.videoComparison = document.getElementById('videoComparison');
+                this.videoContainer = document.getElementById('videoContainer');
+                this.sliderContainer = document.getElementById('sliderContainer');
+                this.sliderHandle = document.getElementById('sliderHandle');
+                this.compareBtn = document.getElementById('compareBtn');
+                this.errorMessage = document.getElementById('errorMessage');
+                this.loopCheckbox = document.getElementById('loopCheckbox');
+                
+                // Preview elements
+                this.previewVideo1 = document.getElementById('previewVideo1');
+                this.previewVideo2 = document.getElementById('previewVideo2');
+                this.preview1 = document.getElementById('preview1');
+                this.preview2 = document.getElementById('preview2');
+                this.filename1 = document.getElementById('filename1');
+                this.filename2 = document.getElementById('filename2');
+                this.videoInfo1 = document.getElementById('videoInfo1');
+                this.videoInfo2 = document.getElementById('videoInfo2');
+                
+                // Control elements
+                this.playPauseBtn = document.getElementById('playPauseBtn');
+                this.rewindBtn = document.getElementById('rewindBtn');
+                this.forwardBtn = document.getElementById('forwardBtn');
+                this.muteBtn = document.getElementById('muteBtn');
+                this.timeDisplay = document.getElementById('timeDisplay');
+                this.progressContainer = document.getElementById('progressContainer');
+                this.progressBar = document.getElementById('progressBar');
+                this.fullscreenBtn = document.getElementById('fullscreenBtn');
+                this.zoomInBtn = document.getElementById('zoomInBtn');
+                this.zoomOutBtn = document.getElementById('zoomOutBtn');
+                this.zoomResetBtn = document.getElementById('zoomResetBtn');
+                this.zoomIndicator = document.getElementById('zoomIndicator');
+
+                this.isDragging = false;
+                this.isPlaying = false;
+                this.isMuted = false;
+                this.isFullscreen = false;
+                this.sliderPosition = 50; // percentage
+                this.isLooping = true; // Default to loop enabled
+                this.isSyncing = false; // Flag to prevent sync loops
+                this.videosReady = false; // Flag to track if both videos are loaded
+                this.syncCheckInterval = null; // Interval for periodic sync checks
+                this.currentZoom = 1; // Current zoom level
+                this.minZoom = 0.5; // Minimum zoom level
+                this.maxZoom = 3; // Maximum zoom level
+                this.isZooming = false; // Flag to indicate if zooming is in progress
+                this.zoomStep = 0.2; // Zoom step for buttons and wheel
+                this.panX = 0; // Pan offset X
+                this.panY = 0; // Pan offset Y
+                this.isDraggingPan = false; // Flag for panning
+                this.lastPanX = 0; // Last pan position X
+                this.lastPanY = 0; // Last pan position Y
+            }
+
+            setupEventListeners() {
+                // File and URL inputs
+                document.getElementById('video1File').addEventListener('change', () => this.handleFileInput(1));
+                document.getElementById('video2File').addEventListener('change', () => this.handleFileInput(2));
+                document.getElementById('video1Url').addEventListener('input', () => this.handleUrlInput(1));
+                document.getElementById('video2Url').addEventListener('input', () => this.handleUrlInput(2));
+
+                // Compare button
+                this.compareBtn.addEventListener('click', () => this.compareVideos());
+
+                // Loop checkbox
+                this.loopCheckbox.addEventListener('change', () => {
+                    this.isLooping = this.loopCheckbox.checked;
+                    this.video1.loop = this.isLooping;
+                    this.video2.loop = this.isLooping;
+                });
+
+                // Slider events
+                this.sliderContainer.addEventListener('mousedown', (e) => this.startDragging(e));
+                this.sliderHandle.addEventListener('mousedown', (e) => this.startDragging(e));
+                document.addEventListener('mousemove', (e) => this.handleDragging(e));
+                document.addEventListener('mouseup', () => this.stopDragging());
+
+                // Touch events for mobile
+                this.sliderContainer.addEventListener('touchstart', (e) => this.startDragging(e));
+                this.sliderHandle.addEventListener('touchstart', (e) => this.startDragging(e));
+                document.addEventListener('touchmove', (e) => this.handleDragging(e));
+                document.addEventListener('touchend', () => this.stopDragging());
+
+                // Video controls
+                this.playPauseBtn.addEventListener('click', () => this.togglePlayPause());
+                this.rewindBtn.addEventListener('click', () => this.rewind());
+                this.forwardBtn.addEventListener('click', () => this.forward());
+                this.muteBtn.addEventListener('click', () => this.toggleMute());
+                this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+                this.zoomInBtn.addEventListener('click', () => this.zoomIn());
+                this.zoomOutBtn.addEventListener('click', () => this.zoomOut());
+                this.zoomResetBtn.addEventListener('click', () => this.resetZoom());
+
+                // Progress bar
+                this.progressContainer.addEventListener('click', (e) => this.seekVideo(e));
+
+                // Video events
+                this.video1.addEventListener('loadedmetadata', () => this.handleVideoLoaded());
+                this.video2.addEventListener('loadedmetadata', () => this.handleVideoLoaded());
+                this.video1.addEventListener('timeupdate', () => this.updateProgress());
+                this.video2.addEventListener('timeupdate', () => this.updateProgress());
+                this.video1.addEventListener('ended', () => this.handleVideoEnded());
+                this.video2.addEventListener('ended', () => this.handleVideoEnded());
+
+                // Fullscreen events
+                document.addEventListener('fullscreenchange', () => this.handleFullscreenChange());
+                document.addEventListener('keydown', (e) => this.handleKeydown(e));
+
+                // Zoom events
+                this.videoContainer.addEventListener('wheel', (e) => this.handleWheel(e), { passive: false });
+                this.videoContainer.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                this.videoContainer.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                this.videoContainer.addEventListener('mouseup', () => this.handleMouseUp());
+                this.videoContainer.addEventListener('mouseleave', () => this.handleMouseUp());
+                this.videoContainer.addEventListener('dblclick', (e) => this.handleDoubleClick(e));
+                
+                // Touch events for mobile zoom
+                this.videoContainer.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+                this.videoContainer.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+                this.videoContainer.addEventListener('touchend', () => this.handleTouchEnd());
+
+                // Cleanup on page unload
+                window.addEventListener('beforeunload', () => {
+                    this.stopSyncCheck();
+                });
+            }
+
+            handleFileInput(videoNumber) {
+                const fileInput = document.getElementById(`video${videoNumber}File`);
+                const urlInput = document.getElementById(`video${videoNumber}Url`);
+                
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const url = URL.createObjectURL(file);
+                    urlInput.value = '';
+                    this.setVideoSource(videoNumber, url);
+                    this.showPreview(videoNumber, url, file.name);
+                }
+            }
+
+            handleUrlInput(videoNumber) {
+                const urlInput = document.getElementById(`video${videoNumber}Url`);
+                const fileInput = document.getElementById(`video${videoNumber}File`);
+                
+                if (urlInput.value.trim()) {
+                    fileInput.value = '';
+                    const url = urlInput.value.trim();
+                    this.setVideoSource(videoNumber, url);
+                    this.showPreview(videoNumber, url, this.getFilenameFromUrl(url));
+                } else {
+                    this.hidePreview(videoNumber);
+                }
+            }
+
+            setVideoSource(videoNumber, src) {
+                const video = document.getElementById(`video${videoNumber}`);
+                video.src = src;
+                video.load();
+            }
+
+            showPreview(videoNumber, src, filename) {
+                const preview = document.getElementById(`preview${videoNumber}`);
+                const previewVideo = document.getElementById(`previewVideo${videoNumber}`);
+                const filenameElement = document.getElementById(`filename${videoNumber}`);
+                const videoInfoElement = document.getElementById(`videoInfo${videoNumber}`);
+                
+                previewVideo.src = src;
+                filenameElement.textContent = filename || 'Video File';
+                
+                previewVideo.addEventListener('loadedmetadata', () => {
+                    const duration = this.formatTime(previewVideo.duration);
+                    const resolution = `${previewVideo.videoWidth}x${previewVideo.videoHeight}`;
+                    videoInfoElement.textContent = `Duration: ${duration} | Resolution: ${resolution}`;
+                }, { once: true });
+                
+                preview.classList.add('active');
+            }
+
+            hidePreview(videoNumber) {
+                const preview = document.getElementById(`preview${videoNumber}`);
+                const previewVideo = document.getElementById(`previewVideo${videoNumber}`);
+                preview.classList.remove('active');
+                previewVideo.src = '';
+            }
+
+            getFilenameFromUrl(url) {
+                try {
+                    const urlPath = new URL(url).pathname;
+                    const filename = urlPath.split('/').pop();
+                    return filename || 'Video URL';
+                } catch (e) {
+                    return 'Video URL';
+                }
+            }
+
+            async compareVideos() {
+                try {
+                    this.hideError();
+                    this.showLoading();
+
+                    const video1Src = this.getVideoSource(1);
+                    const video2Src = this.getVideoSource(2);
+
+                    if (!video1Src || !video2Src) {
+                        throw new Error('Please select both videos before comparing.');
+                    }
+
+                    this.setVideoSource(1, video1Src);
+                    this.setVideoSource(2, video2Src);
+
+                    await this.waitForVideosToLoad();
+                    this.resizeVideos();
+                    
+                    // Set loop property based on checkbox
+                    this.video1.loop = this.isLooping;
+                    this.video2.loop = this.isLooping;
+                    
+                    // Ensure perfect initial sync
+                    this.video1.currentTime = 0;
+                    this.video2.currentTime = 0;
+                    
+                    // Wait for currentTime sync
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    this.videosReady = true;
+                    this.hideLoading();
+                    this.videoComparison.classList.add('active');
+                    this.updateSliderPosition(this.sliderPosition);
+
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError(error.message);
+                }
+            }
+
+            getVideoSource(videoNumber) {
+                const fileInput = document.getElementById(`video${videoNumber}File`);
+                const urlInput = document.getElementById(`video${videoNumber}Url`);
+
+                if (fileInput.files.length > 0) {
+                    return URL.createObjectURL(fileInput.files[0]);
+                } else if (urlInput.value.trim()) {
+                    return urlInput.value.trim();
+                }
+                return null;
+            }
+
+            async waitForVideosToLoad() {
+                return new Promise((resolve, reject) => {
+                    let loadedCount = 0;
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Videos took too long to load'));
+                    }, 15000);
+
+                    const checkLoaded = () => {
+                        loadedCount++;
+                        if (loadedCount === 2) {
+                            // Wait for both videos to be ready to play
+                            const waitForReadyState = () => {
+                                if (this.video1.readyState >= 3 && this.video2.readyState >= 3) {
+                                    clearTimeout(timeout);
+                                    resolve();
+                                } else {
+                                    setTimeout(waitForReadyState, 100);
+                                }
+                            };
+                            waitForReadyState();
+                        }
+                    };
+
+                    this.video1.addEventListener('loadedmetadata', checkLoaded, { once: true });
+                    this.video2.addEventListener('loadedmetadata', checkLoaded, { once: true });
+
+                    // Handle errors
+                    this.video1.addEventListener('error', () => {
+                        clearTimeout(timeout);
+                        reject(new Error('Failed to load first video'));
+                    }, { once: true });
+
+                    this.video2.addEventListener('error', () => {
+                        clearTimeout(timeout);
+                        reject(new Error('Failed to load second video'));
+                    }, { once: true });
+                });
+            }
+
+            resizeVideos() {
+                // Get video dimensions
+                const video1Ratio = this.video1.videoWidth / this.video1.videoHeight;
+                const video2Ratio = this.video2.videoWidth / this.video2.videoHeight;
+                
+                // Get container dimensions
+                const containerRect = this.videoContainer.getBoundingClientRect();
+                const containerRatio = containerRect.width / containerRect.height;
+
+                // Determine the best fit strategy
+                let targetRatio = Math.min(video1Ratio, video2Ratio);
+                
+                // If aspect ratios are very different, crop to match
+                if (Math.abs(video1Ratio - video2Ratio) > 0.2) {
+                    targetRatio = Math.min(video1Ratio, video2Ratio);
+                    
+                    // Apply object-fit cover to ensure videos fill the space
+                    this.video1.style.objectFit = 'cover';
+                    this.video2.style.objectFit = 'cover';
+                } else {
+                    // Similar aspect ratios, use contain
+                    this.video1.style.objectFit = 'contain';
+                    this.video2.style.objectFit = 'contain';
+                }
+
+                // Set container height based on aspect ratio
+                if (containerRatio > targetRatio) {
+                    // Container is wider, set height based on width
+                    const height = containerRect.width / targetRatio;
+                    this.videoContainer.style.height = `${Math.min(height, window.innerHeight * 0.8)}px`;
+                } else {
+                    // Container is taller, use current height
+                    this.videoContainer.style.height = '500px';
+                }
+            }
+
+            startDragging(e) {
+                e.preventDefault();
+                this.isDragging = true;
+                this.handleDragging(e);
+            }
+
+            handleDragging(e) {
+                if (!this.isDragging) return;
+
+                const rect = this.videoContainer.getBoundingClientRect();
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                
+                // Adjust for zoom and pan transforms
+                const x = (clientX - rect.left) / this.currentZoom - this.panX / this.currentZoom;
+                const percentage = Math.max(0, Math.min(100, (x / (rect.width / this.currentZoom)) * 100));
+                
+                this.updateSliderPosition(percentage);
+            }
+
+            stopDragging() {
+                this.isDragging = false;
+            }
+
+            updateSliderPosition(percentage) {
+                this.sliderPosition = percentage;
+                
+                // Update slider position
+                this.sliderContainer.style.left = `${percentage}%`;
+                
+                // Update clip path for right video
+                const videoRight = document.querySelector('.video-right');
+                videoRight.style.clipPath = `polygon(${percentage}% 0%, 100% 0%, 100% 100%, ${percentage}% 100%)`;
+            }
+
+            async togglePlayPause() {
+                // Ensure videos are ready before allowing play
+                if (!this.videosReady) {
+                    return;
+                }
+
+                if (this.isPlaying) {
+                    // Pause both videos
+                    this.isSyncing = true;
+                    this.video1.pause();
+                    this.video2.pause();
+                    this.playPauseBtn.textContent = '▶️';
+                    this.isPlaying = false;
+                    this.stopSyncCheck();
+                    this.isSyncing = false;
+                } else {
+                    // Ensure perfect sync before playing
+                    this.isSyncing = true;
+                    
+                    // Reset both videos to the same time
+                    const currentTime = Math.min(this.video1.currentTime, this.video2.currentTime);
+                    this.video1.currentTime = currentTime;
+                    this.video2.currentTime = currentTime;
+                    
+                    // Wait a brief moment for currentTime to sync
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                    
+                    try {
+                        // Play both videos simultaneously using Promise.all
+                        await Promise.all([
+                            this.video1.play(),
+                            this.video2.play()
+                        ]);
+                        
+                        this.playPauseBtn.textContent = '⏸️';
+                        this.isPlaying = true;
+                        this.startSyncCheck();
+                    } catch (error) {
+                        console.warn('Play failed:', error);
+                        // Fallback: try playing one at a time
+                        try {
+                            await this.video1.play();
+                            await this.video2.play();
+                            this.playPauseBtn.textContent = '⏸️';
+                            this.isPlaying = true;
+                            this.startSyncCheck();
+                        } catch (fallbackError) {
+                            console.error('Fallback play failed:', fallbackError);
+                        }
+                    }
+                    
+                    this.isSyncing = false;
+                }
+            }
+
+            rewind() {
+                this.isSyncing = true;
+                const newTime = Math.max(0, this.video1.currentTime - 10);
+                this.video1.currentTime = newTime;
+                this.video2.currentTime = newTime;
+                this.isSyncing = false;
+            }
+
+            forward() {
+                this.isSyncing = true;
+                const newTime = Math.min(this.video1.duration || 0, this.video1.currentTime + 10);
+                this.video1.currentTime = newTime;
+                this.video2.currentTime = newTime;
+                this.isSyncing = false;
+            }
+
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                this.video1.muted = this.isMuted;
+                this.video2.muted = this.isMuted;
+                this.muteBtn.textContent = this.isMuted ? '🔇' : '🔊';
+            }
+
+            seekVideo(e) {
+                this.isSyncing = true;
+                const rect = this.progressContainer.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const percentage = clickX / rect.width;
+                const newTime = percentage * (this.video1.duration || 0);
+                
+                this.video1.currentTime = newTime;
+                this.video2.currentTime = newTime;
+                this.isSyncing = false;
+            }
+
+            updateProgress() {
+                if (this.video1.duration) {
+                    const percentage = (this.video1.currentTime / this.video1.duration) * 100;
+                    this.progressBar.style.width = `${percentage}%`;
+                    
+                    // Update time display
+                    const current = this.formatTime(this.video1.currentTime);
+                    const total = this.formatTime(this.video1.duration);
+                    this.timeDisplay.textContent = `${current} / ${total}`;
+                }
+            }
+
+            formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            toggleFullscreen() {
+                if (!this.isFullscreen) {
+                    if (this.videoComparison.requestFullscreen) {
+                        this.videoComparison.requestFullscreen();
+                    } else if (this.videoComparison.webkitRequestFullscreen) {
+                        this.videoComparison.webkitRequestFullscreen();
+                    } else if (this.videoComparison.msRequestFullscreen) {
+                        this.videoComparison.msRequestFullscreen();
+                    }
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                }
+            }
+
+            handleFullscreenChange() {
+                this.isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+                
+                if (this.isFullscreen) {
+                    this.videoComparison.classList.add('fullscreen-mode');
+                    this.fullscreenBtn.textContent = '⛶';
+                } else {
+                    this.videoComparison.classList.remove('fullscreen-mode');
+                    this.fullscreenBtn.textContent = '⛶';
+                }
+                
+                // Resize videos when entering/exiting fullscreen
+                setTimeout(() => this.resizeVideos(), 100);
+            }
+
+            handleKeydown(e) {
+                if (!this.videoComparison.classList.contains('active')) return;
+
+                switch (e.code) {
+                    case 'Space':
+                        e.preventDefault();
+                        this.togglePlayPause();
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        this.rewind();
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        this.forward();
+                        break;
+                    case 'KeyM':
+                        e.preventDefault();
+                        this.toggleMute();
+                        break;
+                    case 'KeyF':
+                        e.preventDefault();
+                        this.toggleFullscreen();
+                        break;
+                    case 'Escape':
+                        if (this.isFullscreen) {
+                            this.toggleFullscreen();
+                        }
+                        break;
+                    case 'Equal':
+                    case 'NumpadAdd':
+                        e.preventDefault();
+                        this.zoomIn();
+                        break;
+                    case 'Minus':
+                    case 'NumpadSubtract':
+                        e.preventDefault();
+                        this.zoomOut();
+                        break;
+                    case 'Digit0':
+                    case 'Numpad0':
+                        e.preventDefault();
+                        this.resetZoom();
+                        break;
+                }
+            }
+
+            handleVideoLoaded() {
+                // Remove any existing event listeners to prevent duplicates
+                this.video1.removeEventListener('play', this.syncPlay1);
+                this.video2.removeEventListener('play', this.syncPlay2);
+                this.video1.removeEventListener('pause', this.syncPause1);
+                this.video2.removeEventListener('pause', this.syncPause2);
+                this.video1.removeEventListener('seeked', this.syncSeek1);
+
+                // Create bound methods for proper event handling
+                this.syncPlay1 = () => {
+                    if (!this.isSyncing) {
+                        this.isSyncing = true;
+                        this.video2.currentTime = this.video1.currentTime;
+                        this.video2.play().then(() => {
+                            this.isSyncing = false;
+                        }).catch(() => {
+                            this.isSyncing = false;
+                        });
+                    }
+                };
+
+                this.syncPlay2 = () => {
+                    if (!this.isSyncing) {
+                        this.isSyncing = true;
+                        this.video1.currentTime = this.video2.currentTime;
+                        this.video1.play().then(() => {
+                            this.isSyncing = false;
+                        }).catch(() => {
+                            this.isSyncing = false;
+                        });
+                    }
+                };
+
+                this.syncPause1 = () => {
+                    if (!this.isSyncing) {
+                        this.isSyncing = true;
+                        this.video2.pause();
+                        this.isSyncing = false;
+                    }
+                };
+
+                this.syncPause2 = () => {
+                    if (!this.isSyncing) {
+                        this.isSyncing = true;
+                        this.video1.pause();
+                        this.isSyncing = false;
+                    }
+                };
+
+                this.syncSeek1 = () => {
+                    if (!this.isSyncing) {
+                        this.isSyncing = true;
+                        this.video2.currentTime = this.video1.currentTime;
+                        this.isSyncing = false;
+                    }
+                };
+
+                // Add the new event listeners
+                this.video1.addEventListener('play', this.syncPlay1);
+                this.video2.addEventListener('play', this.syncPlay2);
+                this.video1.addEventListener('pause', this.syncPause1);
+                this.video2.addEventListener('pause', this.syncPause2);
+                this.video1.addEventListener('seeked', this.syncSeek1);
+            }
+
+            handleVideoEnded() {
+                if (!this.isLooping) {
+                    // If looping is disabled, pause and reset play button
+                    this.isPlaying = false;
+                    this.playPauseBtn.textContent = '▶️';
+                    this.stopSyncCheck();
+                }
+            }
+
+            startSyncCheck() {
+                // Clear any existing interval
+                this.stopSyncCheck();
+                
+                // Check sync every 500ms during playback
+                this.syncCheckInterval = setInterval(() => {
+                    if (this.isPlaying && !this.isSyncing && this.videosReady) {
+                        const timeDiff = Math.abs(this.video1.currentTime - this.video2.currentTime);
+                        
+                        // If videos are more than 0.1 seconds out of sync, correct it
+                        if (timeDiff > 0.1) {
+                            this.isSyncing = true;
+                            
+                            // Sync to the video that's behind
+                            if (this.video1.currentTime < this.video2.currentTime) {
+                                this.video1.currentTime = this.video2.currentTime;
+                            } else {
+                                this.video2.currentTime = this.video1.currentTime;
+                            }
+                            
+                            setTimeout(() => {
+                                this.isSyncing = false;
+                            }, 100);
+                        }
+                    }
+                }, 500);
+            }
+
+            stopSyncCheck() {
+                if (this.syncCheckInterval) {
+                    clearInterval(this.syncCheckInterval);
+                    this.syncCheckInterval = null;
+                }
+            }
+
+            showError(message) {
+                this.errorMessage.textContent = message;
+                this.errorMessage.style.display = 'block';
+            }
+
+            hideError() {
+                this.errorMessage.style.display = 'none';
+            }
+
+            showLoading() {
+                this.compareBtn.textContent = 'Loading...';
+                this.compareBtn.disabled = true;
+                this.compareBtn.classList.add('loading');
+            }
+
+            hideLoading() {
+                this.compareBtn.textContent = '🔄 Compare Videos';
+                this.compareBtn.disabled = false;
+                this.compareBtn.classList.remove('loading');
+            }
+
+            zoomIn(centerX, centerY) {
+                if (this.isZooming) return;
+                this.isZooming = true;
+                
+                const newZoom = Math.min(this.maxZoom, this.currentZoom + this.zoomStep);
+                this.applyZoom(newZoom, centerX, centerY);
+                
+                this.isZooming = false;
+            }
+
+            zoomOut(centerX, centerY) {
+                if (this.isZooming) return;
+                this.isZooming = true;
+                
+                const newZoom = Math.max(this.minZoom, this.currentZoom - this.zoomStep);
+                this.applyZoom(newZoom, centerX, centerY);
+                
+                this.isZooming = false;
+            }
+
+            applyZoom(newZoom, centerX, centerY) {
+                const rect = this.videoContainer.getBoundingClientRect();
+                const cx = centerX !== undefined ? centerX : rect.width / 2;
+                const cy = centerY !== undefined ? centerY : rect.height / 2;
+                
+                // Calculate the zoom change
+                const zoomChange = newZoom / this.currentZoom;
+                
+                // Adjust pan to keep the zoom centered on the mouse position
+                this.panX = cx - (cx - this.panX) * zoomChange;
+                this.panY = cy - (cy - this.panY) * zoomChange;
+                
+                this.currentZoom = newZoom;
+                this.updateZoom();
+            }
+
+            updateZoom() {
+                const transform = `scale(${this.currentZoom}) translate(${this.panX}px, ${this.panY}px)`;
+                this.videoContainer.style.transform = transform;
+                
+                // Update UI
+                if (this.currentZoom > 1) {
+                    this.videoContainer.classList.add('zoomed');
+                } else {
+                    this.videoContainer.classList.remove('zoomed');
+                }
+                
+                this.zoomIndicator.textContent = `${Math.round(this.currentZoom * 100)}%`;
+                this.zoomIndicator.classList.add('visible');
+                
+                // Hide zoom indicator after 2 seconds
+                setTimeout(() => {
+                    this.zoomIndicator.classList.remove('visible');
+                }, 2000);
+            }
+
+            resetZoom() {
+                this.currentZoom = 1;
+                this.panX = 0;
+                this.panY = 0;
+                this.updateZoom();
+            }
+
+            handleWheel(e) {
+                e.preventDefault();
+                
+                const rect = this.videoContainer.getBoundingClientRect();
+                const centerX = e.clientX - rect.left;
+                const centerY = e.clientY - rect.top;
+                
+                if (e.deltaY < 0) {
+                    this.zoomIn(centerX, centerY);
+                } else {
+                    this.zoomOut(centerX, centerY);
+                }
+            }
+
+            handleMouseDown(e) {
+                // Only handle panning if zoomed in and not clicking on slider
+                if (this.currentZoom > 1 && !e.target.closest('.slider-container')) {
+                    this.isDraggingPan = true;
+                    this.lastPanX = e.clientX;
+                    this.lastPanY = e.clientY;
+                    this.videoContainer.classList.add('dragging');
+                    e.preventDefault();
+                }
+            }
+
+            handleMouseMove(e) {
+                if (this.isDraggingPan) {
+                    const deltaX = e.clientX - this.lastPanX;
+                    const deltaY = e.clientY - this.lastPanY;
+                    
+                    this.panX += deltaX;
+                    this.panY += deltaY;
+                    
+                    this.lastPanX = e.clientX;
+                    this.lastPanY = e.clientY;
+                    
+                    this.updateZoom();
+                }
+            }
+
+            handleMouseUp() {
+                this.isDraggingPan = false;
+                this.videoContainer.classList.remove('dragging');
+            }
+
+            handleDoubleClick(e) {
+                // Don't reset zoom if double-clicking on controls
+                if (e.target.closest('.video-controls') || e.target.closest('.zoom-controls')) {
+                    return;
+                }
+                this.resetZoom();
+            }
+
+            handleTouchStart(e) {
+                if (e.touches.length === 1) {
+                    // Single touch - panning
+                    if (this.currentZoom > 1) {
+                        this.isDraggingPan = true;
+                        this.lastPanX = e.touches[0].clientX;
+                        this.lastPanY = e.touches[0].clientY;
+                        this.videoContainer.classList.add('dragging');
+                    }
+                } else if (e.touches.length === 2) {
+                    // Pinch zoom
+                    e.preventDefault();
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    
+                    this.initialPinchDistance = Math.sqrt(
+                        Math.pow(touch2.clientX - touch1.clientX, 2) +
+                        Math.pow(touch2.clientY - touch1.clientY, 2)
+                    );
+                    
+                    this.initialZoom = this.currentZoom;
+                    this.pinchCenterX = (touch1.clientX + touch2.clientX) / 2;
+                    this.pinchCenterY = (touch1.clientY + touch2.clientY) / 2;
+                    
+                    const rect = this.videoContainer.getBoundingClientRect();
+                    this.pinchCenterX -= rect.left;
+                    this.pinchCenterY -= rect.top;
+                }
+            }
+
+            handleTouchMove(e) {
+                if (e.touches.length === 1 && this.isDraggingPan) {
+                    e.preventDefault();
+                    const deltaX = e.touches[0].clientX - this.lastPanX;
+                    const deltaY = e.touches[0].clientY - this.lastPanY;
+                    
+                    this.panX += deltaX;
+                    this.panY += deltaY;
+                    
+                    this.lastPanX = e.touches[0].clientX;
+                    this.lastPanY = e.touches[0].clientY;
+                    
+                    this.updateZoom();
+                } else if (e.touches.length === 2 && this.initialPinchDistance) {
+                    e.preventDefault();
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    
+                    const currentDistance = Math.sqrt(
+                        Math.pow(touch2.clientX - touch1.clientX, 2) +
+                        Math.pow(touch2.clientY - touch1.clientY, 2)
+                    );
+                    
+                    const scale = currentDistance / this.initialPinchDistance;
+                    const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.initialZoom * scale));
+                    
+                    this.applyZoom(newZoom, this.pinchCenterX, this.pinchCenterY);
+                }
+            }
+
+            handleTouchEnd() {
+                this.isDraggingPan = false;
+                this.videoContainer.classList.remove('dragging');
+                this.initialPinchDistance = null;
+                this.initialZoom = null;
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new VideoComparison();
+        });
+    </script>
+</body>
+</html> 
