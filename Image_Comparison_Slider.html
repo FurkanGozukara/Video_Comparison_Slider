@@ -791,15 +791,23 @@
                 this.setupDragAndDrop();
 
                 // Image selectors
-                this.leftImageSelector.addEventListener('change', (e) => this.changeLeftImage(e.target.value));
-                this.rightImageSelector.addEventListener('change', (e) => this.changeRightImage(e.target.value));
+                this.leftImageSelector.addEventListener('change', (e) => {
+                    console.log('Left selector changed to:', e.target.value);
+                    this.changeLeftImage(e.target.value);
+                });
+                this.rightImageSelector.addEventListener('change', (e) => {
+                    console.log('Right selector changed to:', e.target.value);
+                    this.changeRightImage(e.target.value);
+                });
                 
                 // Overlay selectors (for fullscreen mode)
                 this.leftImageSelectorOverlay.addEventListener('change', (e) => {
+                    console.log('Left overlay selector changed to:', e.target.value);
                     e.preventDefault();
                     this.changeLeftImage(e.target.value);
                 });
                 this.rightImageSelectorOverlay.addEventListener('change', (e) => {
+                    console.log('Right overlay selector changed to:', e.target.value);
                     e.preventDefault();
                     this.changeRightImage(e.target.value);
                 });
@@ -899,7 +907,7 @@
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         const imageData = {
-                            id: Date.now() + Math.random(),
+                            id: String(Date.now() + Math.random()), // Convert to string
                             name: file.name,
                             size: this.formatFileSize(file.size),
                             src: e.target.result,
@@ -919,7 +927,7 @@
                 const img = new Image();
                 img.onload = () => {
                     const imageData = {
-                        id: Date.now() + Math.random(),
+                        id: String(Date.now() + Math.random()), // Convert to string
                         name: this.getFilenameFromUrl(url),
                         size: 'Unknown',
                         src: url,
@@ -969,14 +977,13 @@
             }
 
             updateImageSelectors() {
-                const selectors = [
+                const mainSelectors = [
                     this.leftImageSelector,
-                    this.rightImageSelector,
-                    this.leftImageSelectorOverlay,
-                    this.rightImageSelectorOverlay
+                    this.rightImageSelector
                 ];
 
-                selectors.forEach(selector => {
+                // Update main selectors first
+                mainSelectors.forEach(selector => {
                     const currentValue = selector.value;
                     
                     selector.innerHTML = '<option value="">Select an image...</option>';
@@ -989,12 +996,12 @@
                     });
                     
                     // Restore previous selection if still available
-                    if (currentValue && this.images.find(img => img.id === currentValue)) {
+                    if (currentValue && this.images.find(img => img.id == currentValue)) { // Use == for type coercion
                         selector.value = currentValue;
                     }
                 });
                 
-                // Sync overlay selectors
+                // Sync overlay selectors after main selectors are updated
                 this.syncOverlaySelectors();
             }
 
@@ -1008,7 +1015,7 @@
                     this.changeLeftImage(this.images[0].id);
                 } else if (this.images.length >= 1 && !this.currentRightImage && this.currentLeftImage) {
                     // Auto-select first different image for right
-                    const differentImage = this.images.find(img => img.id !== this.currentLeftImage.id);
+                    const differentImage = this.images.find(img => img.id != this.currentLeftImage.id); // Use != for type coercion
                     if (differentImage) {
                         this.changeRightImage(differentImage.id);
                     }
@@ -1016,57 +1023,104 @@
             }
 
             changeLeftImage(imageId) {
+                console.log('changeLeftImage called with:', imageId, 'type:', typeof imageId);
+                console.log('Available images:', this.images.map(img => ({id: img.id, name: img.name, idType: typeof img.id})));
                 if (imageId) {
-                    const image = this.images.find(img => img.id === imageId);
+                    const image = this.images.find(img => img.id == imageId); // Use == instead of === for type coercion
                     if (image) {
+                        console.log('Found left image:', image.name);
                         this.currentLeftImage = image;
                         this.updateAllSelectors('left', imageId);
                         this.updatePreview('left', image);
                         
-                        // Update the comparison image directly if comparison is active
-                        if (this.imageComparison.classList.contains('active')) {
+                        // Always update the comparison image if it exists
+                        if (this.image1) {
                             this.image1.src = image.src;
-                            this.updateImageInfo();
-                        } else {
-                            this.autoCompare();
+                            console.log('Updated left image src to:', image.src);
                         }
                         
-                        // Ensure overlay selectors are synced
-                        setTimeout(() => this.syncOverlaySelectors(), 10);
+                        this.updateImageInfo();
+                        
+                        // Auto-compare if we have both images
+                        if (this.currentRightImage && !this.imageComparison.classList.contains('active')) {
+                            this.autoCompare();
+                        } else if (this.imageComparison.classList.contains('active')) {
+                            // Force image to refresh
+                            this.image1.onload = () => {
+                                console.log('Left image loaded successfully');
+                            };
+                        }
+                    } else {
+                        console.log('LEFT IMAGE NOT FOUND for ID:', imageId);
                     }
+                } else {
+                    // Clear left image
+                    this.currentLeftImage = null;
+                    this.updateAllSelectors('left', '');
+                    this.updatePreview('left', null);
+                    if (this.image1) {
+                        this.image1.src = '';
+                    }
+                    this.updateImageInfo();
                 }
             }
 
             changeRightImage(imageId) {
+                console.log('changeRightImage called with:', imageId, 'type:', typeof imageId);
+                console.log('Available images:', this.images.map(img => ({id: img.id, name: img.name, idType: typeof img.id})));
                 if (imageId) {
-                    const image = this.images.find(img => img.id === imageId);
+                    const image = this.images.find(img => img.id == imageId); // Use == instead of === for type coercion
                     if (image) {
+                        console.log('Found right image:', image.name);
                         this.currentRightImage = image;
                         this.updateAllSelectors('right', imageId);
                         this.updatePreview('right', image);
                         
-                        // Update the comparison image directly if comparison is active
-                        if (this.imageComparison.classList.contains('active')) {
+                        // Always update the comparison image if it exists
+                        if (this.image2) {
                             this.image2.src = image.src;
-                            this.updateImageInfo();
-                        } else {
-                            this.autoCompare();
+                            console.log('Updated right image src to:', image.src);
                         }
                         
-                        // Ensure overlay selectors are synced
-                        setTimeout(() => this.syncOverlaySelectors(), 10);
+                        this.updateImageInfo();
+                        
+                        // Auto-compare if we have both images
+                        if (this.currentLeftImage && !this.imageComparison.classList.contains('active')) {
+                            this.autoCompare();
+                        } else if (this.imageComparison.classList.contains('active')) {
+                            // Force image to refresh
+                            this.image2.onload = () => {
+                                console.log('Right image loaded successfully');
+                            };
+                        }
+                    } else {
+                        console.log('RIGHT IMAGE NOT FOUND for ID:', imageId);
                     }
+                } else {
+                    // Clear right image
+                    this.currentRightImage = null;
+                    this.updateAllSelectors('right', '');
+                    this.updatePreview('right', null);
+                    if (this.image2) {
+                        this.image2.src = '';
+                    }
+                    this.updateImageInfo();
                 }
             }
 
             updateAllSelectors(side, imageId) {
+                console.log(`updateAllSelectors called: ${side} = ${imageId}`);
                 if (side === 'left') {
+                    // Update main selector
                     this.leftImageSelector.value = imageId;
+                    // Update overlay selector
                     if (this.leftImageSelectorOverlay) {
                         this.leftImageSelectorOverlay.value = imageId;
                     }
                 } else {
+                    // Update main selector
                     this.rightImageSelector.value = imageId;
+                    // Update overlay selector
                     if (this.rightImageSelectorOverlay) {
                         this.rightImageSelectorOverlay.value = imageId;
                     }
@@ -1076,22 +1130,21 @@
             syncOverlaySelectors() {
                 // Ensure overlay selectors exist and have the same options as main selectors
                 if (this.leftImageSelectorOverlay && this.rightImageSelectorOverlay) {
+                    // Update options
                     this.leftImageSelectorOverlay.innerHTML = this.leftImageSelector.innerHTML;
                     this.rightImageSelectorOverlay.innerHTML = this.rightImageSelector.innerHTML;
                     
-                    // Force sync current values
-                    setTimeout(() => {
-                        if (this.currentLeftImage) {
-                            this.leftImageSelectorOverlay.value = this.currentLeftImage.id;
-                        } else {
-                            this.leftImageSelectorOverlay.value = '';
-                        }
-                        if (this.currentRightImage) {
-                            this.rightImageSelectorOverlay.value = this.currentRightImage.id;
-                        } else {
-                            this.rightImageSelectorOverlay.value = '';
-                        }
-                    }, 10);
+                    // Sync current values immediately
+                    if (this.currentLeftImage) {
+                        this.leftImageSelectorOverlay.value = this.currentLeftImage.id;
+                    } else {
+                        this.leftImageSelectorOverlay.value = '';
+                    }
+                    if (this.currentRightImage) {
+                        this.rightImageSelectorOverlay.value = this.currentRightImage.id;
+                    } else {
+                        this.rightImageSelectorOverlay.value = '';
+                    }
                 }
             }
 
@@ -1112,16 +1165,20 @@
             }
 
             autoCompare() {
+                console.log('autoCompare called - left:', this.currentLeftImage?.name, 'right:', this.currentRightImage?.name);
                 if (this.currentLeftImage && this.currentRightImage) {
                     this.compareImages();
                 }
             }
 
             compareImages() {
+                console.log('compareImages called');
                 if (!this.currentLeftImage || !this.currentRightImage) {
+                    console.log('Missing images for comparison');
                     return;
                 }
 
+                console.log('Setting image sources:', this.currentLeftImage.name, this.currentRightImage.name);
                 this.image1.src = this.currentLeftImage.src;
                 this.image2.src = this.currentRightImage.src;
                 
@@ -1130,28 +1187,40 @@
                     this.waitForImageLoad(this.image1),
                     this.waitForImageLoad(this.image2)
                 ]).then(() => {
+                    console.log('Images loaded, activating comparison');
                     this.imageComparison.classList.add('active');
                     this.resetZoom();
                     this.updateImageInfo();
+                    // Ensure overlay selectors are properly synchronized
                     this.syncOverlaySelectors();
                     this.hideError();
                 }).catch(error => {
+                    console.error('Failed to load images:', error);
                     this.showError('Failed to load images for comparison');
                 });
             }
 
             waitForImageLoad(img) {
                 return new Promise((resolve, reject) => {
-                    if (img.complete) {
+                    if (img.complete && img.naturalWidth !== 0) {
+                        console.log('Image already loaded:', img.src);
                         resolve();
                     } else {
-                        img.onload = resolve;
-                        img.onerror = reject;
+                        console.log('Waiting for image to load:', img.src);
+                        img.onload = () => {
+                            console.log('Image loaded:', img.src);
+                            resolve();
+                        };
+                        img.onerror = (error) => {
+                            console.error('Image load error:', img.src, error);
+                            reject(error);
+                        };
                     }
                 });
             }
 
             updateImageInfo() {
+                console.log('updateImageInfo called');
                 if (this.currentLeftImage) {
                     this.leftImageInfo.textContent = `Left: ${this.currentLeftImage.name}`;
                 } else {
@@ -1166,13 +1235,13 @@
             }
 
             removeImage(imageId) {
-                this.images = this.images.filter(img => img.id !== imageId);
+                this.images = this.images.filter(img => img.id != imageId); // Use != for type coercion
                 
                 // Update current selections if removed
-                if (this.currentLeftImage && this.currentLeftImage.id === imageId) {
+                if (this.currentLeftImage && this.currentLeftImage.id == imageId) {
                     this.currentLeftImage = null;
                 }
-                if (this.currentRightImage && this.currentRightImage.id === imageId) {
+                if (this.currentRightImage && this.currentRightImage.id == imageId) {
                     this.currentRightImage = null;
                 }
                 
@@ -1396,7 +1465,7 @@
             // Fullscreen functionality
             toggleFullscreen() {
                 if (!this.isFullscreen) {
-                    // Sync before entering fullscreen
+                    // Ensure overlay selectors are synced before entering fullscreen
                     this.syncOverlaySelectors();
                     
                     if (this.imageComparison.requestFullscreen) {
@@ -1427,10 +1496,8 @@
                     fullscreenBtn2.textContent = '🔲 Exit Fullscreen';
                     // Reset zoom and pan when entering fullscreen for better scaling
                     this.resetZoom();
-                    // Sync overlay selectors for fullscreen with delay to ensure DOM is ready
-                    setTimeout(() => {
-                        this.syncOverlaySelectors();
-                    }, 100);
+                    // Sync overlay selectors for fullscreen
+                    this.syncOverlaySelectors();
                 } else {
                     this.imageComparison.classList.remove('fullscreen-mode');
                     fullscreenBtn2.textContent = '📺 Fullscreen';
@@ -1512,7 +1579,9 @@
         // Initialize the application
         let imageApp;
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('Initializing Image Comparison App');
             imageApp = new ImageComparison();
+            console.log('Image Comparison App initialized');
         });
     </script>
 </body>
