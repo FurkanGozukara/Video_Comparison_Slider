@@ -537,6 +537,28 @@
             border-radius: 0 !important;
         }
 
+        .fullscreen-mode .image-container {
+            min-height: 100vh !important;
+            height: 100vh !important;
+        }
+
+        .fullscreen-mode .image-wrapper {
+            width: 100% !important;
+            height: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .fullscreen-mode .comparison-image {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
+            max-width: none !important;
+            max-height: none !important;
+            display: block !important;
+        }
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -640,6 +662,10 @@
 
             <button id="resetZoomBtn" class="reset-zoom-btn">
                 🔍 Reset Zoom
+            </button>
+
+            <button id="fullscreenBtn2" class="reset-zoom-btn" style="background: linear-gradient(45deg, #6f42c1, #e83e8c);">
+                📺 Fullscreen
             </button>
         </div>
 
@@ -767,12 +793,21 @@
                 // Image selectors
                 this.leftImageSelector.addEventListener('change', (e) => this.changeLeftImage(e.target.value));
                 this.rightImageSelector.addEventListener('change', (e) => this.changeRightImage(e.target.value));
-                this.leftImageSelectorOverlay.addEventListener('change', (e) => this.changeLeftImage(e.target.value));
-                this.rightImageSelectorOverlay.addEventListener('change', (e) => this.changeRightImage(e.target.value));
+                
+                // Overlay selectors (for fullscreen mode)
+                this.leftImageSelectorOverlay.addEventListener('change', (e) => {
+                    e.preventDefault();
+                    this.changeLeftImage(e.target.value);
+                });
+                this.rightImageSelectorOverlay.addEventListener('change', (e) => {
+                    e.preventDefault();
+                    this.changeRightImage(e.target.value);
+                });
 
                 // Buttons
                 this.resetZoomBtn.addEventListener('click', () => this.resetZoom());
                 this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+                document.getElementById('fullscreenBtn2').addEventListener('click', () => this.toggleFullscreen());
                 this.zoomInBtn.addEventListener('click', () => this.zoomIn());
                 this.zoomOutBtn.addEventListener('click', () => this.zoomOut());
                 this.zoomResetBtn.addEventListener('click', () => this.resetZoom());
@@ -958,6 +993,9 @@
                         selector.value = currentValue;
                     }
                 });
+                
+                // Sync overlay selectors
+                this.syncOverlaySelectors();
             }
 
             autoSelectImages() {
@@ -984,7 +1022,17 @@
                         this.currentLeftImage = image;
                         this.updateAllSelectors('left', imageId);
                         this.updatePreview('left', image);
-                        this.autoCompare();
+                        
+                        // Update the comparison image directly if comparison is active
+                        if (this.imageComparison.classList.contains('active')) {
+                            this.image1.src = image.src;
+                            this.updateImageInfo();
+                        } else {
+                            this.autoCompare();
+                        }
+                        
+                        // Ensure overlay selectors are synced
+                        setTimeout(() => this.syncOverlaySelectors(), 10);
                     }
                 }
             }
@@ -996,7 +1044,17 @@
                         this.currentRightImage = image;
                         this.updateAllSelectors('right', imageId);
                         this.updatePreview('right', image);
-                        this.autoCompare();
+                        
+                        // Update the comparison image directly if comparison is active
+                        if (this.imageComparison.classList.contains('active')) {
+                            this.image2.src = image.src;
+                            this.updateImageInfo();
+                        } else {
+                            this.autoCompare();
+                        }
+                        
+                        // Ensure overlay selectors are synced
+                        setTimeout(() => this.syncOverlaySelectors(), 10);
                     }
                 }
             }
@@ -1004,10 +1062,36 @@
             updateAllSelectors(side, imageId) {
                 if (side === 'left') {
                     this.leftImageSelector.value = imageId;
-                    this.leftImageSelectorOverlay.value = imageId;
+                    if (this.leftImageSelectorOverlay) {
+                        this.leftImageSelectorOverlay.value = imageId;
+                    }
                 } else {
                     this.rightImageSelector.value = imageId;
-                    this.rightImageSelectorOverlay.value = imageId;
+                    if (this.rightImageSelectorOverlay) {
+                        this.rightImageSelectorOverlay.value = imageId;
+                    }
+                }
+            }
+
+            syncOverlaySelectors() {
+                // Ensure overlay selectors exist and have the same options as main selectors
+                if (this.leftImageSelectorOverlay && this.rightImageSelectorOverlay) {
+                    this.leftImageSelectorOverlay.innerHTML = this.leftImageSelector.innerHTML;
+                    this.rightImageSelectorOverlay.innerHTML = this.rightImageSelector.innerHTML;
+                    
+                    // Force sync current values
+                    setTimeout(() => {
+                        if (this.currentLeftImage) {
+                            this.leftImageSelectorOverlay.value = this.currentLeftImage.id;
+                        } else {
+                            this.leftImageSelectorOverlay.value = '';
+                        }
+                        if (this.currentRightImage) {
+                            this.rightImageSelectorOverlay.value = this.currentRightImage.id;
+                        } else {
+                            this.rightImageSelectorOverlay.value = '';
+                        }
+                    }, 10);
                 }
             }
 
@@ -1049,6 +1133,7 @@
                     this.imageComparison.classList.add('active');
                     this.resetZoom();
                     this.updateImageInfo();
+                    this.syncOverlaySelectors();
                     this.hideError();
                 }).catch(error => {
                     this.showError('Failed to load images for comparison');
@@ -1147,11 +1232,20 @@
                 const cx = centerX !== undefined ? centerX : rect.width / 2;
                 const cy = centerY !== undefined ? centerY : rect.height / 2;
                 
+                // Calculate the zoom change ratio
                 const zoomChange = newZoom / this.currentZoom;
-                this.panX = cx - (cx - this.panX) * zoomChange;
-                this.panY = cy - (cy - this.panY) * zoomChange;
                 
+                // Calculate the point in the current transformed space
+                const pointX = (cx - this.panX) / this.currentZoom;
+                const pointY = (cy - this.panY) / this.currentZoom;
+                
+                // Update zoom level
                 this.currentZoom = newZoom;
+                
+                // Calculate new pan to keep the point under the mouse cursor
+                this.panX = cx - pointX * this.currentZoom;
+                this.panY = cy - pointY * this.currentZoom;
+                
                 this.updateZoom();
             }
 
@@ -1187,11 +1281,13 @@
                 const centerX = e.clientX - rect.left;
                 const centerY = e.clientY - rect.top;
                 
-                if (e.deltaY < 0) {
-                    this.zoomIn(centerX, centerY);
-                } else {
-                    this.zoomOut(centerX, centerY);
-                }
+                // Use smaller zoom steps for smoother wheel zooming
+                const wheelZoomStep = 0.1;
+                const newZoom = e.deltaY < 0 ? 
+                    Math.min(this.maxZoom, this.currentZoom + wheelZoomStep) : 
+                    Math.max(this.minZoom, this.currentZoom - wheelZoomStep);
+                
+                this.applyZoom(newZoom, centerX, centerY);
             }
 
             handleMouseDown(e) {
@@ -1300,6 +1396,9 @@
             // Fullscreen functionality
             toggleFullscreen() {
                 if (!this.isFullscreen) {
+                    // Sync before entering fullscreen
+                    this.syncOverlaySelectors();
+                    
                     if (this.imageComparison.requestFullscreen) {
                         this.imageComparison.requestFullscreen();
                     } else if (this.imageComparison.webkitRequestFullscreen) {
@@ -1321,10 +1420,20 @@
             handleFullscreenChange() {
                 this.isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
                 
+                const fullscreenBtn2 = document.getElementById('fullscreenBtn2');
+                
                 if (this.isFullscreen) {
                     this.imageComparison.classList.add('fullscreen-mode');
+                    fullscreenBtn2.textContent = '🔲 Exit Fullscreen';
+                    // Reset zoom and pan when entering fullscreen for better scaling
+                    this.resetZoom();
+                    // Sync overlay selectors for fullscreen with delay to ensure DOM is ready
+                    setTimeout(() => {
+                        this.syncOverlaySelectors();
+                    }, 100);
                 } else {
                     this.imageComparison.classList.remove('fullscreen-mode');
+                    fullscreenBtn2.textContent = '📺 Fullscreen';
                 }
             }
 
