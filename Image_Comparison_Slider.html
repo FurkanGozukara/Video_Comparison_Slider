@@ -1360,7 +1360,7 @@
             }
 
             handleMouseDown(e) {
-                if (this.currentZoom > 1 && !e.target.closest('.slider-container')) {
+                if (this.currentZoom > 1 && !e.target.closest('.slider-container') && !e.target.closest('.comparison-controls')) {
                     this.isDraggingPan = true;
                     this.lastPanX = e.clientX;
                     this.lastPanY = e.clientY;
