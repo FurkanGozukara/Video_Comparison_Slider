@@ -1,3 +1,8 @@
+
+# Only made for SECourses Patreon subscribers : https://www.patreon.com/posts/133935178
+
+## Please get from and use : https://www.patreon.com/posts/133935178
+
 # Video Comparison Slider App
 
 A modern, responsive web application for comparing two videos side-by-side with an interactive slider interface.
