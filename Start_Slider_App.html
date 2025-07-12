@@ -142,6 +142,31 @@
             transform: none;
         }
 
+        .reset-zoom-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .reset-zoom-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(23, 162, 184, 0.3);
+        }
+
+        .reset-zoom-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .loop-control {
             margin-bottom: 20px;
             text-align: center;
@@ -687,6 +712,10 @@
             <button id="compareBtn" class="compare-btn">
                 🔄 Compare Videos
             </button>
+
+            <button id="resetZoomBtn2" class="reset-zoom-btn">
+                🔍 Reset Zoom
+            </button>
         </div>
 
         <div class="error-message" id="errorMessage"></div>
@@ -808,6 +837,9 @@
 
                 // Compare button
                 this.compareBtn.addEventListener('click', () => this.compareVideos());
+
+                // Reset zoom button
+                document.getElementById('resetZoomBtn2').addEventListener('click', () => this.resetZoom());
 
                 // Loop checkbox
                 this.loopCheckbox.addEventListener('change', () => {
