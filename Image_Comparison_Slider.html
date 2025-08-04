@@ -5,6 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Comparison Slider</title>
     <style>
+        :root {
+            /* Light theme (default) */
+            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-secondary: white;
+            --bg-tertiary: #f8f9fa;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-muted: #888;
+            --accent-primary: #667eea;
+            --accent-secondary: #764ba2;
+            --border-color: #e9ecef;
+            --shadow: rgba(0,0,0,0.1);
+            --shadow-light: rgba(0,0,0,0.08);
+            --shadow-dark: rgba(0,0,0,0.2);
+            --shadow-heavy: rgba(0,0,0,0.3);
+            --overlay-bg: rgba(0,0,0,0.7);
+            --overlay-bg-light: rgba(0,0,0,0.8);
+            --control-bg: rgba(255,255,255,0.2);
+            --control-bg-hover: rgba(255,255,255,0.3);
+            --progress-bg: rgba(255,255,255,0.3);
+            --error-bg: #dc3545;
+            --success-bg: #28a745;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                /* Dark theme */
+                --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                --bg-secondary: #2d3748;
+                --bg-tertiary: #1a202c;
+                --text-primary: #f7fafc;
+                --text-secondary: #cbd5e0;
+                --text-muted: #a0aec0;
+                --accent-primary: #667eea;
+                --accent-secondary: #764ba2;
+                --border-color: #4a5568;
+                --shadow: rgba(0,0,0,0.3);
+                --shadow-light: rgba(0,0,0,0.25);
+                --shadow-dark: rgba(0,0,0,0.4);
+                --shadow-heavy: rgba(0,0,0,0.5);
+                --overlay-bg: rgba(0,0,0,0.8);
+                --overlay-bg-light: rgba(0,0,0,0.9);
+                --control-bg: rgba(255,255,255,0.15);
+                --control-bg-hover: rgba(255,255,255,0.25);
+                --progress-bg: rgba(255,255,255,0.2);
+                --error-bg: #e53e3e;
+                --success-bg: #38a169;
+            }
+        }
+
+        /* Manual theme override */
+        [data-theme="dark"] {
+            /* Dark theme */
+            --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --bg-secondary: #2d3748;
+            --bg-tertiary: #1a202c;
+            --text-primary: #f7fafc;
+            --text-secondary: #cbd5e0;
+            --text-muted: #a0aec0;
+            --accent-primary: #667eea;
+            --accent-secondary: #764ba2;
+            --border-color: #4a5568;
+            --shadow: rgba(0,0,0,0.3);
+            --shadow-light: rgba(0,0,0,0.25);
+            --shadow-dark: rgba(0,0,0,0.4);
+            --shadow-heavy: rgba(0,0,0,0.5);
+            --overlay-bg: rgba(0,0,0,0.8);
+            --overlay-bg-light: rgba(0,0,0,0.9);
+            --control-bg: rgba(255,255,255,0.15);
+            --control-bg-hover: rgba(255,255,255,0.25);
+            --progress-bg: rgba(255,255,255,0.2);
+            --error-bg: #e53e3e;
+            --success-bg: #38a169;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,22 +88,23 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-primary);
             min-height: 100vh;
             padding: 20px;
+            color: var(--text-primary);
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: white;
+            background: var(--bg-secondary);
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px var(--shadow);
             overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
             color: white;
             padding: 30px;
             text-align: center;
@@ -47,37 +123,37 @@
 
         .controls {
             padding: 30px;
-            background: #f8f9fa;
+            background: var(--bg-tertiary);
         }
 
         .upload-section {
-            background: white;
+            background: var(--bg-secondary);
             border-radius: 15px;
             padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 5px 15px var(--shadow-light);
             margin-bottom: 30px;
         }
 
         .upload-section h3 {
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 20px;
             font-size: 1.3rem;
             text-align: center;
         }
 
         .drop-zone {
-            border: 2px dashed #667eea;
+            border: 2px dashed var(--accent-primary);
             border-radius: 15px;
             padding: 40px;
             text-align: center;
-            color: #667eea;
+            color: var(--accent-primary);
             margin-bottom: 20px;
             transition: all 0.3s ease;
             cursor: pointer;
         }
 
         .drop-zone.dragover {
-            border-color: #28a745;
+            border-color: var(--success-bg);
             background-color: rgba(40, 167, 69, 0.1);
         }
 
@@ -103,7 +179,7 @@
         .file-input-label {
             display: block;
             padding: 15px 40px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
             color: white;
             border-radius: 50px;
             cursor: pointer;
@@ -121,7 +197,7 @@
         .url-input {
             width: 100%;
             padding: 15px;
-            border: 2px solid #e9ecef;
+            border: 2px solid var(--border-color);
             border-radius: 10px;
             font-size: 16px;
             transition: border-color 0.3s ease;
@@ -129,7 +205,7 @@
 
         .url-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--accent-primary);
         }
 
         .image-gallery {
@@ -140,17 +216,17 @@
             max-height: 300px;
             overflow-y: auto;
             padding: 10px;
-            border: 1px solid #e9ecef;
+            border: 1px solid var(--border-color);
             border-radius: 10px;
-            background: #f8f9fa;
+            background: var(--bg-tertiary);
         }
 
         .image-gallery-item {
             position: relative;
-            background: white;
+            background: var(--bg-secondary);
             border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px var(--shadow);
             transition: transform 0.3s ease;
         }
 
@@ -168,13 +244,13 @@
         .image-gallery-item .info {
             padding: 8px;
             font-size: 12px;
-            color: #666;
+            color: var(--text-secondary);
             text-align: center;
         }
 
         .image-gallery-item .name {
             font-weight: 500;
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 2px;
             white-space: nowrap;
             overflow: hidden;
@@ -185,7 +261,7 @@
             position: absolute;
             top: 5px;
             right: 5px;
-            background: rgba(220, 53, 69, 0.9);
+            background: var(--error-bg);
             color: white;
             border: none;
             border-radius: 50%;
@@ -212,14 +288,14 @@
         }
 
         .selector-group {
-            background: white;
+            background: var(--bg-secondary);
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 5px 15px var(--shadow-light);
         }
 
         .selector-group h4 {
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 15px;
             font-size: 1.1rem;
             text-align: center;
@@ -228,17 +304,17 @@
         .image-selector {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e9ecef;
+            border: 2px solid var(--border-color);
             border-radius: 10px;
             font-size: 16px;
-            background: white;
+            background: var(--bg-secondary);
             cursor: pointer;
             transition: border-color 0.3s ease;
         }
 
         .image-selector:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--accent-primary);
         }
 
         .selected-preview {
@@ -246,7 +322,7 @@
             text-align: center;
             border-radius: 10px;
             overflow: hidden;
-            background: #f8f9fa;
+            background: var(--bg-tertiary);
         }
 
         .selected-preview img {
@@ -258,7 +334,7 @@
         .selected-preview .info {
             padding: 10px;
             font-size: 14px;
-            color: #666;
+            color: var(--text-secondary);
         }
 
         .reset-zoom-btn {
@@ -562,7 +638,7 @@
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #666;
+            color: var(--text-secondary);
         }
 
         .empty-state .icon {
@@ -573,7 +649,7 @@
 
         .empty-state h3 {
             margin-bottom: 10px;
-            color: #333;
+            color: var(--text-primary);
         }
 
         .empty-state p {
@@ -607,6 +683,42 @@
             .image-gallery {
                 grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             }
+        }
+        /* Fix select and input styling for better visibility in dark mode */
+        input[type="url"] {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            width: 100%;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="url"]:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        input[type="url"]::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        /* Ensure all selects have proper styling */
+        select {
+            color: var(--text-primary) !important;
+        }
+        
+        select option {
+            background: var(--bg-secondary) !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Fix checkbox styling in dark mode */
+        input[type="checkbox"] {
+            opacity: 1;
         }
     </style>
 </head>
@@ -715,6 +827,58 @@
     </div>
 
     <script>
+        // Theme Manager
+        class ThemeManager {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                // Detect system preference
+                this.systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+                
+                // Check for saved user preference
+                this.userPreference = localStorage.getItem('theme-preference');
+                
+                // Apply initial theme
+                this.applyTheme();
+                
+                // Listen for system changes
+                this.systemPrefersDark.addEventListener('change', () => {
+                    if (!this.userPreference) {
+                        this.applyTheme();
+                    }
+                });
+            }
+
+            applyTheme() {
+                const isDark = this.userPreference === 'dark' || 
+                               (!this.userPreference && this.systemPrefersDark.matches);
+                
+                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            }
+
+            setTheme(theme) {
+                this.userPreference = theme;
+                if (theme === 'auto') {
+                    localStorage.removeItem('theme-preference');
+                    this.userPreference = null;
+                } else {
+                    localStorage.setItem('theme-preference', theme);
+                }
+                this.applyTheme();
+            }
+
+            toggleTheme() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                this.setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            }
+
+            getCurrentTheme() {
+                return document.documentElement.getAttribute('data-theme') || 'light';
+            }
+        }
+
         class ImageComparison {
             constructor() {
                 this.init();
@@ -1578,8 +1742,14 @@
 
         // Initialize the application
         let imageApp;
+        let themeManager;
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Initializing Image Comparison App');
+            
+            // Initialize theme manager
+            themeManager = new ThemeManager();
+            
+            // Initialize image comparison app
             imageApp = new ImageComparison();
             console.log('Image Comparison App initialized');
         });
