@@ -1423,6 +1423,7 @@
                     };
                     
                     this.videos.push(videoData);
+                    this.videos.sort((a, b) => this.naturalSort(a, b));
                     this.updateVideoGallery();
                     this.updateVideoSelectors();
                     this.autoSelectVideos();
@@ -1441,6 +1442,7 @@
                     };
                     
                     this.videos.push(videoData);
+                    this.videos.sort((a, b) => this.naturalSort(a, b));
                     this.updateVideoGallery();
                     this.updateVideoSelectors();
                     this.autoSelectVideos();
@@ -1713,6 +1715,42 @@
                 const sizes = ['Bytes', 'KB', 'MB', 'GB'];
                 const i = Math.floor(Math.log(bytes) / Math.log(k));
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            // Windows-style natural sorting for consistent file ordering
+            naturalSort(a, b) {
+                const nameA = a.name || '';
+                const nameB = b.name || '';
+                
+                // Split strings into parts with numeric and non-numeric segments
+                const partsA = nameA.match(/(\d+|\D+)/g) || [];
+                const partsB = nameB.match(/(\d+|\D+)/g) || [];
+                
+                const maxLength = Math.max(partsA.length, partsB.length);
+                
+                for (let i = 0; i < maxLength; i++) {
+                    const partA = partsA[i] || '';
+                    const partB = partsB[i] || '';
+                    
+                    // Check if both parts are numeric
+                    const numA = parseInt(partA, 10);
+                    const numB = parseInt(partB, 10);
+                    
+                    if (!isNaN(numA) && !isNaN(numB)) {
+                        // Numeric comparison
+                        if (numA !== numB) {
+                            return numA - numB;
+                        }
+                    } else {
+                        // String comparison (case-insensitive)
+                        const comparison = partA.toLowerCase().localeCompare(partB.toLowerCase());
+                        if (comparison !== 0) {
+                            return comparison;
+                        }
+                    }
+                }
+                
+                return 0;
             }
 
             async compareVideos() {
